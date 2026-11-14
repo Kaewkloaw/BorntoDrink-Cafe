@@ -1,26 +1,121 @@
 @import "tailwindcss";
 
+/* BorntoDrink palette — Linen / Tangelo / Chocolate Brown / Botticelli
+   plus playful accents taken from the shape-tile board. */
+@theme {
+  --color-linen: #f9e8d4;
+  --color-linen-50: #fdf7f0;
+  --color-tangelo: #d54c15;
+  --color-tangelo-600: #b83f10;
+  --color-choco: #663924;
+  --color-choco-900: #3b1d0f;
+  --color-botticelli: #8db6c7;
+  --color-botticelli-100: #dcebf1;
+  --color-lilac: #ebb8e3;
+  --color-lime: #cfd67a;
+  --color-butter: #fde68a;
+  --color-berry: #8b1538;
+  --color-sage: #3f6447;
+  --color-slate: #44606a;
+  /* secondary text: >= 4.5:1 on white and on the cream page backgrounds */
+  --color-muted: #755a4b;
+  --color-tangelo-700: #9b350d;
+
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Bigger text, logo and icons on web screens: everything is sized in rem, so this scales it all. */
+@media (min-width: 768px) {
+  html {
+    font-size: 106.25%; /* 17px */
+  }
+}
+@media (min-width: 1024px) {
+  html {
+    font-size: 112.5%; /* 18px */
+  }
+}
+
+/* height of the sticky site header, so the category bar can sit right below it */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --header-h: 4.25rem;
 }
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@media (min-width: 768px) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --header-h: 5rem;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #fbf7f1;
+  color: var(--color-choco-900);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+/* zig-zag torn edge at the bottom of the receipt */
+.receipt-tear {
+  --tooth: 14px;
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / var(--tooth) 51% repeat-x,
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth) / 2) no-repeat;
+}
+
+.dash-line {
+  background-image: linear-gradient(to right, currentColor 50%, transparent 0);
+  background-size: 8px 1px;
+  background-repeat: repeat-x;
+  height: 1px;
+}
+
+.barcode {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-choco-900) 0 2px,
+    transparent 2px 4px,
+    var(--color-choco-900) 4px 5px,
+    transparent 5px 8px,
+    var(--color-choco-900) 8px 11px,
+    transparent 11px 12px
+  );
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-slow {
+  animation: spin-slow 18s linear infinite;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+.animate-bob {
+  animation: bob 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin-slow,
+  .animate-bob {
+    animation: none;
+  }
 }

@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Let the dev server serve pages through a Cloudflare quick tunnel (for testing the Slip2Go webhook).
+  allowedDevOrigins: ["*.trycloudflare.com"],
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
