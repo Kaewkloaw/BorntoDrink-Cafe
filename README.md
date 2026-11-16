@@ -1,51 +1,85 @@
-# BorntoDrink Cafe ☕🦖
+<div align="center">
+  <img src="public/brand/borntodrink-logo-nobg.png" width="320" alt="BorntoDrink logo" />
+  <h1>☕ BorntoDrink Cafe 🦖</h1>
+  <img src="https://readme-typing-svg.herokuapp.com/?lines=Welcome+to+BorntoDrink+Cafe!;🧋+Order+Your+Favorite+Drinks;💸+Pay+with+PromptPay+%26+Auto+Slip+Check&center=true&width=550&height=45&color=C2410C">
+  <p align="center">🍵 เว็บสั่งเครื่องดื่มของคาเฟ่ พร้อมชำระเงินผ่าน PromptPay และตรวจสลิปอัตโนมัติด้วย Slip2Go 🥐</p>
 
-เว็บสั่งเครื่องดื่มของคาเฟ่ BorntoDrink พร้อมชำระเงินผ่าน PromptPay และ **ตรวจสลิปอัตโนมัติด้วย [Slip2Go](https://slip2go.com)**
+  ![Next.js](https://img.shields.io/badge/Next.js_16-4A2C1A?style=for-the-badge&logo=nextdotjs&logoColor=white)
+  ![React](https://img.shields.io/badge/React_19-C2410C?style=for-the-badge&logo=react&logoColor=white)
+  ![TypeScript](https://img.shields.io/badge/TypeScript-E8913A?style=for-the-badge&logo=typescript&logoColor=white)
+  ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_4-F4B860?style=for-the-badge&logo=tailwindcss&logoColor=white)
+  ![Supabase](https://img.shields.io/badge/Supabase-8C5A3C?style=for-the-badge&logo=supabase&logoColor=white)
+  ![Slip2Go](https://img.shields.io/badge/Slip2Go_API-D97757?style=for-the-badge)
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+</div>
 
-## ฟีเจอร์
+<div align="center">
+  <img src="public/mascots/latte.webp" width="18%" alt="Latte mascot" />
+  <img src="public/mascots/cheer.webp" width="18%" alt="Cheer mascot" />
+  <img src="public/mascots/chef.webp" width="18%" alt="Chef mascot" />
+  <img src="public/mascots/pour.webp" width="18%" alt="Pour mascot" />
+  <img src="public/mascots/togo.webp" width="18%" alt="To-go mascot" />
+</div>
 
-- 🛒 หน้าร้านเลือกเมนู ปรับตัวเลือก และตะกร้าสินค้า
-- 💸 สร้าง QR PromptPay ตามยอดออเดอร์ที่ถูกต้อง
-- 🧾 อัปโหลดสลิปแล้วตรวจสอบอัตโนมัติ (ยอดเงิน สลิปซ้ำ บัญชีผู้รับ)
-- ⚡ รองรับการตรวจสลิป 2 โหมด: REST (ทันที) และ Queue (ผ่าน webhook)
-- 📊 แดชบอร์ดแอดมินสำหรับดูออเดอร์และสถิติ
+<div align="center">
+  <video src="docs/demo/borntodrink-highlight.mp4" controls muted width="90%"></video>
+  <br>
+  <i>🎬 วิดีโอ Highlight: สั่งเครื่องดื่ม → จ่าย PromptPay → ตรวจสลิปอัตโนมัติ → หลังบ้าน (<a href="docs/demo/borntodrink-highlight.mp4">ดาวน์โหลด mp4</a>)</i>
+</div>
+<br>
 
-## เทคโนโลยีที่ใช้
+## 📄 Project Description
 
-- [Next.js 16](https://nextjs.org/) (App Router) + React 19
-- TypeScript
-- Tailwind CSS 4
-- Motion (animation)
-- `promptpay-qr`, `qrcode`, `jsqr`
-- [Slip2Go API](https://slip2go.com)
+<p style="text-align: justify; line-height: 1.6;">
+  <strong>BorntoDrink Cafe</strong> คือเว็บแอปสำหรับสั่งเครื่องดื่มและขนมของคาเฟ่ที่ออกแบบให้ใช้งานง่าย
+  ลูกค้าเลือกเมนู ปรับตัวเลือก ใส่ตะกร้า แล้วสแกน QR PromptPay จ่ายตามยอดออเดอร์ได้ทันที
+  จากนั้นอัปโหลดสลิปให้ระบบตรวจสอบอัตโนมัติผ่าน <a href="https://slip2go.com">Slip2Go</a>
+  ทั้งยอดเงิน สลิปซ้ำ และบัญชีผู้รับ ส่วนฝั่งร้านมีแดชบอร์ดแอดมินไว้ดูออเดอร์และสถิติ
+  ครบจบในที่เดียว! 🌿
+</p>
 
-## เริ่มต้นใช้งาน
+## ✨ Key Features
 
-### ความต้องการ
+* 🛒 **Menu & Cart:** หน้าร้านเลือกเมนู ปรับตัวเลือก และตะกร้าสินค้า
+* 💸 **PromptPay QR:** สร้าง QR ตามยอดออเดอร์ที่ถูกต้องโดยอัตโนมัติ
+* 🧾 **Auto Slip Verification:** อัปโหลดสลิปแล้วตรวจยอดเงิน สลิปซ้ำ และบัญชีผู้รับ
+* ⚡ **Two Verify Modes:** รองรับ 2 โหมด คือ REST (ได้ผลทันที) และ Queue (ผ่าน webhook)
+* 📊 **Admin Dashboard:** ดูออเดอร์ ตั้งค่าการชำระเงิน และสถิติการตรวจสลิป
+* 📱 **Responsive Design:** ใช้งานสะดวกทั้งบนมือถือและเดสก์ท็อป
 
-- Node.js 20 ขึ้นไป
-- บัญชี Slip2Go (สำหรับตรวจสลิป)
+## 🎄 Prerequisites
 
-### ติดตั้ง
+* **Node.js** 20 ขึ้นไป
+* **npm**
+* บัญชี [Slip2Go](https://slip2go.com) (สำหรับตรวจสลิป)
+* โปรเจกต์ [Supabase](https://supabase.com) (สำหรับฐานข้อมูล)
 
-```bash
-git clone <repo-url>
-cd BorntoDrink
-npm install
-cp .env.example .env.local   # แล้วกรอกค่าต่าง ๆ
-npm run dev
-```
+## 🌱 Installation
 
-เปิด http://localhost:3000
+1.  Clone the repository:
+    ```bash
+    git clone <repo-url>
+    ```
+2.  Navigate to the project:
+    ```bash
+    cd BorntoDrink
+    ```
+3.  Install dependencies:
+    ```bash
+    npm install
+    ```
+4.  Create the environment file:
+    ```bash
+    cp .env.example .env.local
+    ```
+5.  Start the project:
+    ```bash
+    npm run dev
+    ```
 
-หน้าแอดมิน: http://localhost:3000/admin (รหัสผ่านคือ `ADMIN_PASSWORD` ใน `.env.local`)
+เปิด http://localhost:3000 — หน้าแอดมินอยู่ที่ http://localhost:3000/admin (รหัสผ่านคือ `ADMIN_PASSWORD`)
 
-### คำสั่งที่ใช้บ่อย
+### 🧁 Commands
 
 | คำสั่ง | หน้าที่ |
 | --- | --- |
@@ -54,41 +88,60 @@ npm run dev
 | `npm run start` | รันเวอร์ชันที่ build แล้ว |
 | `npm run lint` | ตรวจโค้ดด้วย ESLint |
 
-## Environment Variables
+## 🌺 Environment Setup
 
-สร้างไฟล์ `.env.local` (ห้าม commit) โดยดูตัวอย่างจาก `.env.example`
+ก่อนเริ่มใช้งาน ต้องตั้งค่า environment ในไฟล์ `.env.local` (ห้าม commit) โดยดูตัวอย่างจาก `.env.example`
+
+```env
+SLIP2GO_API_URL=https://connect.slip2go.com
+SLIP2GO_SECRET_KEY=your_slip2go_secret_key
+SLIP2GO_MODE=rest
+SLIP2GO_WEBHOOK_TOKEN=your_webhook_token
+
+ADMIN_PASSWORD=your_admin_password
+SESSION_SECRET=your_random_secret
+
+PROMPTPAY_ID=your_promptpay_id
+PROMPTPAY_NAME=BorntoDrink Cafe
+
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
 
 | ตัวแปร | หน้าที่ |
 | --- | --- |
 | `SLIP2GO_API_URL` | `https://connect.slip2go.com` |
-| `SLIP2GO_SECRET_KEY` | Secret ของ Slip2Go ส่งเป็น `Authorization: Bearer <key>` (ใช้ฝั่งเซิร์ฟเวอร์เท่านั้น) |
+| `SLIP2GO_SECRET_KEY` | Secret ของ Slip2Go ส่งเป็น `Authorization: Bearer <key>` (ฝั่งเซิร์ฟเวอร์เท่านั้น) |
 | `SLIP2GO_MODE` | โหมดตรวจสลิปเริ่มต้น `rest` หรือ `queue` (แอดมินสลับได้ในแดชบอร์ด) |
 | `SLIP2GO_WEBHOOK_TOKEN` | token ลับใน URL ของ webhook (โหมด Queue) |
 | `ADMIN_PASSWORD`, `SESSION_SECRET` | รหัสผ่านแอดมินและคีย์เซ็น cookie |
-| `PROMPTPAY_ID`, `PROMPTPAY_NAME` | ข้อมูลสร้าง QR PromptPay ตามยอดออเดอร์ |
-| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | ฐานข้อมูล Supabase (ใช้ฝั่งเซิร์ฟเวอร์เท่านั้น) |
-| `RECEIVER_ACCOUNT_NUMBER` | (ไม่บังคับ) รับเฉพาะสลิปที่โอนเข้าบัญชีนี้ (`checkReceiver`) |
+| `PROMPTPAY_ID`, `PROMPTPAY_NAME` | ข้อมูลสร้าง QR PromptPay |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | ฐานข้อมูล Supabase (ฝั่งเซิร์ฟเวอร์เท่านั้น) |
+| `RECEIVER_ACCOUNT_NUMBER` | (ไม่บังคับ) รับเฉพาะสลิปที่โอนเข้าบัญชีนี้ |
 
-## การเชื่อมต่อ Slip2Go
+## 🗄️ Database (Supabase)
+
+ออเดอร์ การตั้งค่า และ webhook log เก็บใน Supabase (Postgres)
+
+1. สร้างโปรเจกต์ที่ [supabase.com](https://supabase.com)
+2. เปิด **SQL Editor** แล้วรันไฟล์ [`supabase/schema.sql`](supabase/schema.sql)
+3. นำ **Project URL** และ **service_role key** (Project Settings → API) ไปใส่ใน `.env.local`
+
+## 🧾 Slip2Go Integration
 
 ทุกครั้งที่ตรวจสลิปจะส่ง `checkDuplicate: true` และ `checkAmount: { type: "eq", amount: <ยอดออเดอร์> }`
-นอกจากนี้เซิร์ฟเวอร์ตรวจยอดซ้ำอีกชั้น และปฏิเสธ `transRef` ที่เคยใช้จ่ายออเดอร์อื่นแล้ว
+เซิร์ฟเวอร์ตรวจยอดซ้ำอีกชั้น และปฏิเสธ `transRef` ที่เคยใช้จ่ายออเดอร์อื่นแล้ว
 
-**REST API** (ได้ผลทันที): `POST /api/verify-slip/qr-image/info` (ส่งรูปแบบ multipart)
-ถ้ามีแค่ข้อความ QR จะ fallback ไปที่ `/api/verify-slip/qr-code/info`
-
-**Queue API** (แบบ async): เบราว์เซอร์ถอดรหัส QR จากสลิป (jsQR) → `POST /api/queue/verify-slip/qr-code`
-→ ออเดอร์เข้าสถานะ `verifying` → Slip2Go ส่งผลกลับมาที่
+* **REST API** (ได้ผลทันที): `POST /api/verify-slip/qr-image/info` ถ้ามีแค่ข้อความ QR จะ fallback ไปที่ `/api/verify-slip/qr-code/info`
+* **Queue API** (async): เบราว์เซอร์ถอดรหัส QR จากสลิป (jsQR) → `POST /api/queue/verify-slip/qr-code` → ออเดอร์เข้าสถานะ `verifying` → Slip2Go ส่งผลกลับมาที่
 
 ```
 https://<public-host>/api/slip2go/webhook?token=<SLIP2GO_WEBHOOK_TOKEN>
 ```
 
-ลงทะเบียน URL นี้ในแดชบอร์ด Slip2Go โดยต้องเป็น HTTPS สาธารณะ
-ถ้าทดสอบในเครื่อง ให้ใช้ tunnel เช่น `npx cloudflared tunnel --url http://localhost:3000` หรือ ngrok
-หากยังไม่ได้ตั้งค่า Slip2Go จะตอบกลับ `400422`
+> 💡 URL นี้ต้องเป็น HTTPS สาธารณะ ถ้าทดสอบในเครื่องให้ใช้ tunnel เช่น `npx cloudflared tunnel --url http://localhost:3000` หรือ ngrok
 
-## โครงสร้างโปรเจกต์
+## 📂 Project Structure
 
 ```
 src/
@@ -104,20 +157,16 @@ supabase/schema.sql       # ตารางฐานข้อมูล
 public/                   # รูปแบรนด์ มาสคอต และสินค้า
 ```
 
-## ฐานข้อมูล (Supabase)
-
-ออเดอร์ การตั้งค่า และ webhook log เก็บใน Supabase (Postgres)
-
-1. สร้างโปรเจกต์ที่ [supabase.com](https://supabase.com)
-2. เปิด **SQL Editor** แล้วรันไฟล์ [`supabase/schema.sql`](supabase/schema.sql)
-3. เอา **Project URL** และ **service_role key** (Project Settings → API) ไปใส่เป็น `SUPABASE_URL` และ `SUPABASE_SERVICE_ROLE_KEY`
-
-## Deploy บน Vercel
+## 🚀 Deploy on Vercel
 
 1. Import repo นี้ที่ [vercel.com/new](https://vercel.com/new)
 2. ใส่ Environment Variables ทั้งหมดจาก `.env.example`
 3. Deploy แล้วลงทะเบียน webhook ใน Slip2Go เป็น `https://<โดเมนของคุณ>/api/slip2go/webhook?token=<SLIP2GO_WEBHOOK_TOKEN>`
 
-## License
+## 🛠️ Tech Stack
+
+[Next.js 16](https://nextjs.org/) (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Motion · Supabase · `promptpay-qr` · `qrcode` · `jsqr` · [Slip2Go API](https://slip2go.com)
+
+## 📜 License
 
 โปรเจกต์นี้เป็นโปรเจกต์ภายในของ BorntoDev
