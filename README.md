@@ -49,11 +49,11 @@
 
 1.  Clone the repository:
     ```bash
-    git clone <repo-url>
+    git clone https://github.com/Kaewkloaw/BorntoDrink-Cafe.git
     ```
 2.  Navigate to the project:
     ```bash
-    cd BorntoDrink
+    cd BorntoDrink-Cafe
     ```
 3.  Install dependencies:
     ```bash
