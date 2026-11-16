@@ -66,6 +66,7 @@ npm run dev
 | `SLIP2GO_WEBHOOK_TOKEN` | token ลับใน URL ของ webhook (โหมด Queue) |
 | `ADMIN_PASSWORD`, `SESSION_SECRET` | รหัสผ่านแอดมินและคีย์เซ็น cookie |
 | `PROMPTPAY_ID`, `PROMPTPAY_NAME` | ข้อมูลสร้าง QR PromptPay ตามยอดออเดอร์ |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | ฐานข้อมูล Supabase (ใช้ฝั่งเซิร์ฟเวอร์เท่านั้น) |
 | `RECEIVER_ACCOUNT_NUMBER` | (ไม่บังคับ) รับเฉพาะสลิปที่โอนเข้าบัญชีนี้ (`checkReceiver`) |
 
 ## การเชื่อมต่อ Slip2Go
@@ -98,19 +99,24 @@ src/
 │   ├── admin/            # แดชบอร์ดแอดมิน
 │   └── api/              # orders, admin, slip2go webhook
 ├── components/           # UI components
-└── lib/                  # products, store, verify, slip2go, auth
-data/                     # ข้อมูลออเดอร์ (gitignored)
+└── lib/                  # products, store (Supabase), verify, slip2go, auth
+supabase/schema.sql       # ตารางฐานข้อมูล
 public/                   # รูปแบรนด์ มาสคอต และสินค้า
 ```
 
-## ข้อมูลออเดอร์
+## ฐานข้อมูล (Supabase)
 
-ออเดอร์ถูกเก็บใน `data/orders.json` (อยู่ใน `.gitignore`)
-ถ้าจะใช้งานจริงให้เปลี่ยน `src/lib/store.ts` ไปใช้ฐานข้อมูลจริง
+ออเดอร์ การตั้งค่า และ webhook log เก็บใน Supabase (Postgres)
 
-## Deploy
+1. สร้างโปรเจกต์ที่ [supabase.com](https://supabase.com)
+2. เปิด **SQL Editor** แล้วรันไฟล์ [`supabase/schema.sql`](supabase/schema.sql)
+3. เอา **Project URL** และ **service_role key** (Project Settings → API) ไปใส่เป็น `SUPABASE_URL` และ `SUPABASE_SERVICE_ROLE_KEY`
 
-แนะนำ [Vercel](https://vercel.com/) แต่เนื่องจากตอนนี้เก็บข้อมูลเป็นไฟล์ ควรย้ายไปใช้ฐานข้อมูลก่อน deploy บนแพลตฟอร์มที่ filesystem เป็นแบบอ่านอย่างเดียว
+## Deploy บน Vercel
+
+1. Import repo นี้ที่ [vercel.com/new](https://vercel.com/new)
+2. ใส่ Environment Variables ทั้งหมดจาก `.env.example`
+3. Deploy แล้วลงทะเบียน webhook ใน Slip2Go เป็น `https://<โดเมนของคุณ>/api/slip2go/webhook?token=<SLIP2GO_WEBHOOK_TOKEN>`
 
 ## License
 

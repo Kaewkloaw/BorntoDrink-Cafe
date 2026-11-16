@@ -1,7 +1,6 @@
 import "server-only";
-import { promises as fs } from "fs";
-import path from "path";
 import crypto from "crypto";
+import { db } from "./supabase";
 
 export type OrderStatus = "pending" | "verifying" | "paid" | "rejected";
 export type VerifyMode = "rest" | "queue";
@@ -63,77 +62,71 @@ export interface Settings {
   mode: VerifyMode;
 }
 
-const SETTINGS_FILE = path.join(process.cwd(), "data", "settings.json");
-
 export async function getSettings(): Promise<Settings> {
   const fallback: Settings = { mode: process.env.SLIP2GO_MODE === "queue" ? "queue" : "rest" };
-  try {
-    return { ...fallback, ...JSON.parse(await fs.readFile(SETTINGS_FILE, "utf8")) };
-  } catch {
-    return fallback;
-  }
+  const { data } = await db().from("settings").select("value").eq("key", "app").maybeSingle();
+  return { ...fallback, ...(data?.value as Partial<Settings> | undefined) };
 }
 
 export async function saveSettings(s: Settings) {
-  await fs.mkdir(path.dirname(SETTINGS_FILE), { recursive: true });
-  await fs.writeFile(SETTINGS_FILE, JSON.stringify(s, null, 2));
+  const { error } = await db().from("settings").upsert({ key: "app", value: s });
+  if (error) throw new Error(`saveSettings: ${error.message}`);
 }
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const FILE = path.join(DATA_DIR, "orders.json");
-
-// Serialise writes so concurrent requests don't clobber the JSON file.
-let queue: Promise<unknown> = Promise.resolve();
-function locked<T>(fn: () => Promise<T>): Promise<T> {
-  const run = queue.then(fn, fn);
-  queue = run.catch(() => undefined);
-  return run;
-}
-
-async function readAll(): Promise<Order[]> {
-  try {
-    return JSON.parse(await fs.readFile(FILE, "utf8")) as Order[];
-  } catch {
-    return [];
-  }
-}
-
-async function writeAll(orders: Order[]) {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  const tmp = `${FILE}.${process.pid}.tmp`;
-  await fs.writeFile(tmp, JSON.stringify(orders, null, 2));
-  await fs.rename(tmp, FILE);
+interface Row {
+  id: string;
+  version: number;
+  data: Order;
 }
 
 export async function listOrders(): Promise<Order[]> {
-  const orders = await readAll();
-  return orders.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const { data, error } = await db().from("orders").select("data").order("created_at", { ascending: false });
+  if (error) throw new Error(`listOrders: ${error.message}`);
+  return (data ?? []).map((r) => r.data as Order);
 }
 
 export async function getOrder(id: string): Promise<Order | undefined> {
-  return (await readAll()).find((o) => o.id === id);
+  const { data } = await db().from("orders").select("data").eq("id", id).maybeSingle();
+  return data?.data as Order | undefined;
 }
 
-export function createOrder(input: Omit<Order, "id" | "createdAt" | "status" | "slipAttempts">) {
-  return locked(async () => {
-    const orders = await readAll();
-    const id = `BTD-${Date.now().toString(36).toUpperCase()}-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
-    const order: Order = { ...input, customerName: input.customerName || `Guest ${id.slice(-4)}`, id, createdAt: new Date().toISOString(), status: "pending", slipAttempts: [] };
-    orders.push(order);
-    await writeAll(orders);
-    return order;
-  });
+export async function findOrderByQueueId(queueId: string): Promise<Order | undefined> {
+  const { data } = await db().from("orders").select("data").eq("queue_id", queueId).maybeSingle();
+  return data?.data as Order | undefined;
 }
 
-export function updateOrder(id: string, fn: (o: Order, all: Order[]) => void) {
-  return locked(async () => {
-    const orders = await readAll();
-    const order = orders.find((o) => o.id === id);
-    if (!order) return undefined;
-    fn(order, orders);
-    await writeAll(orders);
-    return order;
-  });
+export async function createOrder(input: Omit<Order, "id" | "createdAt" | "status" | "slipAttempts">) {
+  const id = `BTD-${Date.now().toString(36).toUpperCase()}-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
+  const order: Order = { ...input, customerName: input.customerName || `Guest ${id.slice(-4)}`, id, createdAt: new Date().toISOString(), status: "pending", slipAttempts: [] };
+  const { error } = await db().from("orders").insert({ id, created_at: order.createdAt, status: order.status, queue_id: null, data: order });
+  if (error) throw new Error(`createOrder: ${error.message}`);
+  return order;
+}
+
+/**
+ * Read-modify-write one order with optimistic locking: the update only lands if nobody changed the
+ * row since we read it (`version`), otherwise we re-read and re-apply `fn`. Safe across serverless instances.
+ * `all` holds the already-paid orders (what `transRefUsed` needs).
+ */
+export async function updateOrder(id: string, fn: (o: Order, all: Order[]) => void): Promise<Order | undefined> {
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const { data: row } = await db().from("orders").select("id, version, data").eq("id", id).maybeSingle<Row>();
+    if (!row) return undefined;
+    const { data: paidRows } = await db().from("orders").select("data").eq("status", "paid");
+    const paid = (paidRows ?? []).map((r) => r.data as Order).filter((o) => o.id !== id);
+    const order = row.data;
+    const all = [...paid, order];
+    fn(order, all);
+    const { data: updated, error } = await db()
+      .from("orders")
+      .update({ status: order.status, queue_id: order.queueId ?? null, data: order, version: row.version + 1 })
+      .eq("id", id)
+      .eq("version", row.version)
+      .select("id");
+    if (error) throw new Error(`updateOrder: ${error.message}`);
+    if (updated && updated.length > 0) return order;
+  }
+  throw new Error("updateOrder: too much contention, try again");
 }
 
 /** Has any *other* order already been paid with this bank transaction ref? */
@@ -147,19 +140,22 @@ export function transRefUsed(all: Order[], transRef: string, exceptId: string) {
 export const isOkCode = (code: string) => code === "200000" || code === "200200";
 
 /** Start (or reuse, if tapped again within 2s) a payment window for this order. Returns its start time. */
-export function startPayWindow(id: string) {
-  return locked(async () => {
-    const orders = await readAll();
-    const o = orders.find((x) => x.id === id);
-    if (!o || o.status !== "pending") return undefined;
+export async function startPayWindow(id: string) {
+  let result: string | undefined;
+  await updateOrder(id, (o) => {
+    result = undefined;
+    if (o.status !== "pending") return;
     const starts = o.payStarts ?? [];
     const last = starts.at(-1);
-    if (last && Date.now() - Date.parse(last) < 2000) return last;
+    if (last && Date.now() - Date.parse(last) < 2000) {
+      result = last;
+      return;
+    }
     const now = new Date().toISOString();
     o.payStarts = [...starts, now].slice(-20);
-    await writeAll(orders);
-    return now;
+    result = now;
   });
+  return result;
 }
 
 export const payWindowSeconds = () => Math.max(0, Number(process.env.SLIP_WINDOW_SECONDS ?? 0) || 0);

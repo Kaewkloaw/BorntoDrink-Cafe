@@ -1,18 +1,14 @@
 import crypto from "crypto";
-import { promises as fs } from "fs";
-import path from "path";
 import { NextResponse } from "next/server";
-import { listOrders } from "@/lib/store";
+import { findOrderByQueueId } from "@/lib/store";
+import { db } from "@/lib/supabase";
 import type { Slip2GoResponse } from "@/lib/slip2go";
 import { applySlipResult } from "@/lib/verify";
-
-const LOG = path.join(process.cwd(), "data", "webhook-log.jsonl");
 
 /** Keep the raw callbacks so we can see exactly what Slip2Go sends (docs don't cover failures). */
 async function log(entry: unknown) {
   try {
-    await fs.mkdir(path.dirname(LOG), { recursive: true });
-    await fs.appendFile(LOG, JSON.stringify({ at: new Date().toISOString(), ...(entry as object) }) + "\n");
+    await db().from("webhook_log").insert({ entry });
   } catch {}
 }
 
@@ -61,7 +57,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true, matched: false });
   }
 
-  const order = (await listOrders()).find((o) => o.queueId === queueId);
+  const order = await findOrderByQueueId(queueId);
   if (!order) {
     console.warn("Slip2Go webhook: no order waiting for queueId", queueId);
     await log({ matched: false, reason: "no order for queueId", queueId, body });

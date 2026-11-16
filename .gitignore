@@ -45,6 +45,7 @@ next-env.d.ts
 
 # docs (local only)
 /docs
+/clip for insert
 
 # reference material (local only)
 /ref slip2go
