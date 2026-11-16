@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getOrder, getSettings, publicOrder, updateOrder } from "@/lib/store";
 import { queueSlipQr, SLIP_MESSAGES, verifySlipImage, verifySlipQr, type Slip2GoResponse } from "@/lib/slip2go";
+import { getPaymentConfig } from "@/lib/payment-config";
 import { applySlipResult } from "@/lib/verify";
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -28,10 +29,11 @@ export async function POST(req: Request, ctx: RouteContext<"/api/orders/[id]/sli
   if (!hasFile && !qrCode) return NextResponse.json({ error: "Please attach your transfer slip." }, { status: 400 });
 
   const { mode } = await getSettings();
+  const pay = await getPaymentConfig();
   const cond = {
     amount: order.total,
-    receiverAccount: process.env.RECEIVER_ACCOUNT_NUMBER || undefined,
-    receiverType: process.env.RECEIVER_ACCOUNT_TYPE || undefined,
+    receiverAccount: pay.accountNumber || undefined,
+    receiverType: pay.bankCode || undefined,
   };
 
   try {

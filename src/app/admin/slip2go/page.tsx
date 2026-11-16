@@ -3,13 +3,15 @@ import { headers } from "next/headers";
 import { connection } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { getSettings, listOrders } from "@/lib/store";
-import { getAccountInfo, SLIP_MESSAGES } from "@/lib/slip2go";
+import { BANKS, getPaymentConfig } from "@/lib/payment-config";
+import { getAccountInfo } from "@/lib/slip2go";
 import { computeStats } from "@/lib/admin-stats";
+import { WebhookLink } from "@/components/WebhookLink";
+import { SlipStats } from "@/components/SlipStats";
+import { PaymentChecks } from "@/components/PaymentChecks";
 import { AdminShell } from "@/components/AdminShell";
 import { ModeToggle } from "@/components/AdminControls";
 import { Loading, PLAN_NAMES, PageHeader, Panel, Row } from "@/components/AdminUI";
-
-const BANKS: Record<string, string> = { "01002": "Bangkok Bank", "01004": "Kasikorn", "01006": "Krungthai", "01014": "SCB", "01025": "Krungsri", "02001": "PromptPay (phone)", "04000": "TrueMoney" };
 
 export const metadata = { title: "Slips · BorntoDrink Admin", robots: { index: false } };
 
@@ -25,17 +27,24 @@ async function Slip2Go() {
   await connection();
   await requireAdmin();
 
-  const [orders, account, settings, h] = await Promise.all([listOrders(), getAccountInfo(), getSettings(), headers()]);
+  const [orders, account, settings, h, pay] = await Promise.all([listOrders(), getAccountInfo(), getSettings(), headers(), getPaymentConfig()]);
+  const now = new Date();
   const st = computeStats(orders);
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "your-domain";
   const proto = h.get("x-forwarded-proto") ?? "https";
-  const webhookUrl = `${proto}://${host}/api/slip2go/webhook?token=${process.env.SLIP2GO_WEBHOOK_TOKEN ?? "<SLIP2GO_WEBHOOK_TOKEN>"}`;
-  const windowS = Number(process.env.SLIP_WINDOW_SECONDS ?? 0);
+  const webhookUrl = `${proto}://${host}/api/slip2go/webhook?token=${pay.webhookToken || "<webhook token>"}`;
   const pct = account ? Math.min(100, (account.tokenRemaining / Math.max(account.tokenLimit, 1)) * 100) : 0;
 
   return (
     <AdminShell active="slip2go" badge={st.needsAttention || undefined}>
       <PageHeader title="Slips" sub="How payments are checked" aside={st.passRate == null ? undefined : `${st.passRate}% of ${st.attempts} checks passed`} />
+
+      <Panel title="Payment checks" aside="Applied to every slip">
+        <PaymentChecks initial={pay} banks={BANKS} />
+        <p className="mt-3 text-xs leading-relaxed text-muted">
+          Slips hide part of the account number and shorten the name, so only the bank and the visible digits can be matched.
+        </p>
+      </Panel>
 
       <section className="grid gap-6 lg:grid-cols-2">
         <Panel title="Slip service (Slip2Go)" aside={account ? `${PLAN_NAMES[account.package] ?? account.package} plan` : undefined}>
@@ -55,7 +64,7 @@ async function Slip2Go() {
               </dl>
             </>
           ) : (
-            <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">Could not load /api/account/info. Check SLIP2GO_SECRET_KEY.</p>
+            <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">Could not load /api/account/info. Check the secret key below.</p>
           )}
         </Panel>
 
@@ -73,43 +82,15 @@ async function Slip2Go() {
             )}
           </p>
           <p className="mt-4 text-xs font-medium text-muted">Result address (add it in Slip2Go → API Connect → Queue API)</p>
-          <code className="mt-1.5 block break-all rounded-md border border-choco/10 bg-choco/[0.03] p-2 text-xs text-muted">{webhookUrl}</code>
+          <WebhookLink key={pay.webhookToken} origin={`${proto}://${host}`} token={pay.webhookToken} />
           {webhookUrl.startsWith("http://localhost") && (
             <p className="mt-2 text-xs text-[#7a5000]">This address only works on this computer. Open this page from your public website to copy the right one.</p>
           )}
         </Panel>
       </section>
 
-      <Panel title="Payment checks" aside="Applied to every slip">
-        <dl className="divide-y divide-choco/10 border-t border-choco/10 text-sm">
-          <Row k="Amount" v="Must equal the order total" />
-          <Row k="Reused slips" v="Blocked" />
-          <Row
-            k="Receiving account"
-            v={process.env.RECEIVER_ACCOUNT_NUMBER ? `${BANKS[process.env.RECEIVER_ACCOUNT_TYPE ?? ""] ?? "Any bank"} · ${process.env.RECEIVER_ACCOUNT_NUMBER}` : "Not restricted"}
-          />
-          <Row k="Receiver name" v={process.env.RECEIVER_NAME_TH ? process.env.RECEIVER_NAME_TH : "Not checked"} />
-          <Row k="Time limit" v={windowS > 0 ? `Transfer within ${windowS % 60 === 0 ? `${windowS / 60} min` : `${windowS}s`} of showing the QR` : "Not checked"} />
-        </dl>
-        <p className="mt-3 text-xs leading-relaxed text-muted">
-          Slips hide part of the account number and shorten the name, so only the bank and the visible digits can be matched. Settings live in <code>.env.local</code>.
-        </p>
-      </Panel>
-
-      <Panel title="Rejected slips" aside={`${st.failedAttempts} total`}>
-        {st.fails.length === 0 ? (
-          <p className="text-sm text-muted">No rejected slips.</p>
-        ) : (
-          <ul className="divide-y divide-choco/10 text-sm">
-            {st.fails.map(([code, n]) => (
-              <li key={code} className="flex items-baseline gap-3 py-2.5 first:pt-0 last:pb-0">
-                <code className="w-16 shrink-0 text-xs text-muted">{code}</code>
-                <span className="flex-1">{SLIP_MESSAGES[code] ?? "Unknown error"}</span>
-                <span className="tabular-nums text-muted">{n}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+      <Panel title="Slip activity" aside="Slips checked for orders in this shop">
+        <SlipStats now={now.getTime()} points={orders.flatMap((o) => o.slipAttempts.map((a) => ({ code: a.code, amount: a.amount, at: a.checkedAt })))} />
       </Panel>
     </AdminShell>
   );

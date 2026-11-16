@@ -23,8 +23,8 @@ export function PageHeader({ title, sub, aside }: { title: string; sub?: string;
   return (
     <header className="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <p className="text-sm text-muted">{sub}</p>
-        <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">{title}</h1>
+        <p className="text-xs text-muted">{sub}</p>
+        <h1 className="font-display text-2xl font-semibold tracking-tight">{title}</h1>
       </div>
       {aside && <div className="text-sm text-muted">{aside}</div>}
     </header>
@@ -33,8 +33,8 @@ export function PageHeader({ title, sub, aside }: { title: string; sub?: string;
 
 export function Panel({ title, aside, id, children }: { title: string; aside?: string; id?: string; children: React.ReactNode }) {
   return (
-    <div id={id} className="scroll-mt-20 rounded-xl border border-choco/10 bg-white p-5">
-      <div className="mb-4 flex items-baseline justify-between gap-3">
+    <div id={id} className="scroll-mt-20 rounded-xl border border-choco/10 bg-white p-4 sm:p-5">
+      <div className="mb-3 flex items-baseline justify-between gap-3">
         <h2 className="text-base font-semibold">{title}</h2>
         {aside && <span className="text-sm text-muted">{aside}</span>}
       </div>
@@ -45,9 +45,9 @@ export function Panel({ title, aside, id, children }: { title: string; aside?: s
 
 export function Stat({ label, value, sub, hero }: { label: string; value: string; sub: string; hero?: boolean }) {
   return (
-    <div className={`p-5 ${hero ? "bg-[#fcebdf]" : ""}`}>
+    <div className={`px-5 py-4 ${hero ? "bg-[#fcebdf]" : ""}`}>
       <p className={`text-sm ${hero ? "font-medium text-tangelo-600" : "text-muted"}`}>{label}</p>
-      <p className={`mt-1.5 font-semibold tabular-nums tracking-tight ${hero ? "text-3xl text-tangelo-600" : "text-2xl"}`}>{value}</p>
+      <p className={`mt-1 font-semibold tabular-nums tracking-tight ${hero ? "text-2xl text-tangelo-600" : "text-xl"}`}>{value}</p>
       <p className="mt-1 text-xs text-muted">{sub}</p>
     </div>
   );
@@ -65,7 +65,7 @@ export function Row({ k, v }: { k: string; v: string }) {
 /* ---------------- orders table ---------------- */
 
 // One grid template shared by the header row and every order row so columns line up.
-const ORDER_GRID = "md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,1.25fr)_5.5rem_9.5rem]";
+const ORDER_GRID = "md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,1.25fr)_5rem_14rem]";
 
 const LABEL: Record<DisplayStatus, string> = { paid: "Paid", pending: "Unpaid", verifying: "Checking", rejected: "Rejected", expired: "Expired" };
 
@@ -116,7 +116,7 @@ function OrderRow({ o }: { o: Order }) {
   const avatar = AVATAR[[...o.customerName].reduce((n, ch) => n + ch.charCodeAt(0), 0) % AVATAR.length];
 
   return (
-    <li className={`grid gap-x-4 gap-y-3 px-5 py-4 transition hover:bg-choco/[0.02] md:items-start ${ORDER_GRID}`}>
+    <li className={`grid gap-x-4 gap-y-3 px-5 py-3 transition hover:bg-choco/[0.02] md:items-center ${ORDER_GRID}`}>
       {/* customer */}
       <div className="flex min-w-0 gap-3">
         <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-semibold ${avatar}`}>
@@ -134,7 +134,7 @@ function OrderRow({ o }: { o: Order }) {
 
       {/* items */}
       <div className="min-w-0 text-sm text-choco/80">
-        <ul className="space-y-1">
+        <ul className="space-y-0.5">
           {o.items.map((i, idx) => (
             <li key={idx}>
               {i.qty > 1 ? `${i.qty}× ${i.name}` : i.name}
@@ -180,7 +180,7 @@ function OrderRow({ o }: { o: Order }) {
       <div className="md:text-right"><p className="text-sm font-semibold tabular-nums">{formatTHB(o.total)}</p>{(o.discount ?? 0) > 0 && <p className="text-xs text-sage">Grand opening −{formatTHB(o.discount!)}</p>}</div>
 
       {/* status + actions */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 md:flex-col md:items-start md:gap-2">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 md:flex-nowrap md:gap-2">
         <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${st.text} ${st.bg}`}>
           <span className={`h-1.5 w-1.5 rounded-full ${st.dot}`} />
           {o.refunded ? "Refunded" : LABEL[ds]}

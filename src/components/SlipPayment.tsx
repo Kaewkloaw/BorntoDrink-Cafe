@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PublicOrder, VerifyMode } from "@/lib/store";
 import { formatTHB } from "@/lib/products";
+import { useCart } from "./CartProvider";
 import { ReceiptSuccess } from "./ReceiptSuccess";
 import { Sparkle } from "./Shapes";
 
@@ -62,7 +63,6 @@ export function SlipPayment({
   windowSeconds,
   initialWindow,
   totalLabel,
-  promptpayName,
 }: {
   initial: PublicOrder;
   mode: VerifyMode;
@@ -77,9 +77,20 @@ export function SlipPayment({
   /** a payment window that is already running (e.g. after a page reload) */
   initialWindow: { expiresAt: string; serverNow: number } | null;
   totalLabel: string;
-  promptpayName: string;
 }) {
   const [order, setOrder] = useState(initial);
+
+  // the order was just placed from the checkout page: now that this page is open, empty the bag
+  const { clear } = useCart();
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("btd-placed") === initial.id) {
+        sessionStorage.removeItem("btd-placed");
+        clear();
+      }
+    } catch {}
+  }, [initial.id, clear]);
+
   const [phase, setPhase] = useState<Phase>(
     initial.status === "paid" ? "success" : initial.status === "verifying" ? "queued" : "idle",
   );
@@ -227,7 +238,6 @@ export function SlipPayment({
                 <div className="mb-2 rounded-lg bg-[#1a3d6d] py-1 text-center text-xs font-bold tracking-wider text-white">PromptPay</div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={qrImage!} alt={`PromptPay QR for ${totalLabel}`} className="h-56 w-56" />
-                <p className="mt-2 text-center text-xs text-choco">{promptpayName}</p>
               </div>
             ) : account ? (
               <div className="mt-5 rounded-2xl bg-white/10 p-4 text-sm">

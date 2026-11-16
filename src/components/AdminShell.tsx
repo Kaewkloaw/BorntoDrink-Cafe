@@ -80,7 +80,7 @@ export function AdminShell({ active, badge, children }: { active: AdminTab; badg
           </nav>
         </div>
 
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-6 sm:px-8 sm:py-9">{children}</div>
+        <div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-5 sm:px-8 sm:py-6">{children}</div>
       </main>
     </div>
   );

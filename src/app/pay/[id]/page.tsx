@@ -5,8 +5,8 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import QRCode from "qrcode";
 import generatePayload from "promptpay-qr";
-import { payAccount } from "@/lib/pay-info";
-import { getOrder, getSettings, payWindowSeconds, payWindowState, publicOrder } from "@/lib/store";
+import { getPaymentConfig, payAccount } from "@/lib/payment-config";
+import { getOrder, getSettings, payWindowState, publicOrder } from "@/lib/store";
 import { formatTHB } from "@/lib/products";
 import { SlipPayment } from "@/components/SlipPayment";
 import { Header } from "@/components/Header";
@@ -33,18 +33,19 @@ async function PayContent({ params }: PageProps<"/pay/[id]">) {
   if (!order) notFound();
   const { mode } = await getSettings();
 
-  const windowS = payWindowSeconds();
+  const cfg = await getPaymentConfig();
+  const windowS = cfg.windowSeconds;
   const running = payWindowState(order);
 
   // With a time limit the QR is only sent once the customer taps "Show QR" (or while a window is running).
-  const ppId = process.env.PROMPTPAY_ID?.trim();
+  const qrAvailable = !!(cfg.qrImage || cfg.promptpayId);
   const qr =
-    ppId && (windowS === 0 || running)
-      ? await QRCode.toDataURL(generatePayload(ppId, { amount: order.total }), { margin: 1, width: 320, color: { dark: "#3b1d0f" } })
+    qrAvailable && (windowS === 0 || running)
+      ? cfg.qrImage || (await QRCode.toDataURL(generatePayload(cfg.promptpayId, { amount: order.total }), { margin: 1, width: 320, color: { dark: "#3b1d0f" } }))
       : null;
 
   // like the QR, the account is only sent once a window is running (or when there is no time limit)
-  const account = windowS === 0 || running ? payAccount() : null;
+  const account = windowS === 0 || running ? payAccount(cfg) : null;
 
   return (
     <>
@@ -61,11 +62,10 @@ async function PayContent({ params }: PageProps<"/pay/[id]">) {
           initial={publicOrder(order)}
           mode={mode}
           qrImage={qr}
-          qrAvailable={!!ppId}
+          qrAvailable={qrAvailable}
           account={account}
           windowSeconds={windowS}
           initialWindow={running}
-          promptpayName={process.env.PROMPTPAY_NAME || "BorntoDrink"}
           totalLabel={formatTHB(order.total)}
         />
       </main>

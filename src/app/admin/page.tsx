@@ -70,25 +70,25 @@ async function Dashboard({ searchParams }: PageProps<"/admin">) {
 
       {/* needs attention */}
       <section>
-        <div className="mb-3 flex items-baseline justify-between">
+        <div className="mb-2 flex items-baseline justify-between">
           <h2 className="text-base font-semibold">Needs attention</h2>
           <Link href="/admin/orders" className="text-sm text-muted hover:text-choco-900">
             All orders →
           </Link>
         </div>
-        <OrdersTable orders={attention.slice(0, 5)} empty="All caught up. Nothing is waiting on you." />
+        <OrdersTable orders={attention.slice(0, 3)} empty="All caught up. Nothing is waiting on you." />
       </section>
 
       {/* revenue + best sellers */}
       <section className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
         <Panel title="Revenue" aside={`${formatTHB(st.weekTotal)} in the last 7 days`}>
           <div className="flex gap-3">
-            <div className="flex h-40 flex-col justify-between pb-6 text-right text-xs tabular-nums text-muted">
+            <div className="flex h-28 flex-col justify-between pb-6 text-right text-xs tabular-nums text-muted">
               {[st.maxDay, st.maxDay / 2, 0].map((v) => (
                 <span key={v}>{v ? formatTHB(v) : "0"}</span>
               ))}
             </div>
-            <div className="relative flex h-40 flex-1 items-end gap-3">
+            <div className="relative flex h-28 flex-1 items-end gap-3">
               <div className="pointer-events-none absolute inset-x-0 top-0 bottom-6 flex flex-col justify-between">
                 {[0, 1, 2].map((i) => (
                   <div key={i} className="border-t border-choco/10" />

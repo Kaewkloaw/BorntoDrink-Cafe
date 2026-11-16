@@ -1,6 +1,7 @@
 import "server-only";
 import crypto from "crypto";
 import { db } from "./supabase";
+import { envWindowSeconds, getPaymentConfig } from "./payment-config";
 
 export type OrderStatus = "pending" | "verifying" | "paid" | "rejected";
 export type VerifyMode = "rest" | "queue";
@@ -52,6 +53,8 @@ export interface Order {
   queuedAt?: string;
   /** each time the customer tapped "Show QR" (starts a payment window); newest last */
   payStarts?: string[];
+  /** payment window (seconds) that applied when this order was placed / last started; 0 = none */
+  payWindowS?: number;
   /** staff sent the customer's money back */
   refunded?: boolean;
   /** last failure reason shown to the customer */
@@ -95,9 +98,9 @@ export async function findOrderByQueueId(queueId: string): Promise<Order | undef
   return data?.data as Order | undefined;
 }
 
-export async function createOrder(input: Omit<Order, "id" | "createdAt" | "status" | "slipAttempts">) {
+export async function createOrder(input: Omit<Order, "id" | "createdAt" | "status" | "slipAttempts" | "payWindowS">) {
   const id = `BTD-${Date.now().toString(36).toUpperCase()}-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
-  const order: Order = { ...input, customerName: input.customerName || `Guest ${id.slice(-4)}`, id, createdAt: new Date().toISOString(), status: "pending", slipAttempts: [] };
+  const order: Order = { ...input, customerName: input.customerName || `Guest ${id.slice(-4)}`, id, createdAt: new Date().toISOString(), status: "pending", slipAttempts: [], payWindowS: (await getPaymentConfig()).windowSeconds };
   const { error } = await db().from("orders").insert({ id, created_at: order.createdAt, status: order.status, queue_id: null, data: order });
   if (error) throw new Error(`createOrder: ${error.message}`);
   return order;
@@ -140,7 +143,7 @@ export function transRefUsed(all: Order[], transRef: string, exceptId: string) {
 export const isOkCode = (code: string) => code === "200000" || code === "200200";
 
 /** Start (or reuse, if tapped again within 2s) a payment window for this order. Returns its start time. */
-export async function startPayWindow(id: string) {
+export async function startPayWindow(id: string, windowS: number) {
   let result: string | undefined;
   await updateOrder(id, (o) => {
     result = undefined;
@@ -152,17 +155,19 @@ export async function startPayWindow(id: string) {
       return;
     }
     const now = new Date().toISOString();
+    o.payWindowS = windowS;
     o.payStarts = [...starts, now].slice(-20);
     result = now;
   });
   return result;
 }
 
-export const payWindowSeconds = () => Math.max(0, Number(process.env.SLIP_WINDOW_SECONDS ?? 0) || 0);
+/** the window that applies to this order (older orders fall back to the .env value) */
+export const orderWindow = (o: Order) => o.payWindowS ?? envWindowSeconds();
 
 /** The payment window that is running right now for this order, if any. */
 export function payWindowState(o: Order) {
-  const w = payWindowSeconds();
+  const w = orderWindow(o);
   const last = o.payStarts?.at(-1);
   const until = w > 0 && o.status === "pending" && last ? Date.parse(last) + w * 1000 : 0;
   const now = Date.now();
@@ -171,13 +176,13 @@ export function payWindowState(o: Order) {
 
 export type DisplayStatus = OrderStatus | "expired";
 /** the pay window plus 5 minutes of grace, never less than 10 minutes */
-const abandonedAfterMs = () => Math.max(10 * 60, payWindowSeconds() + 5 * 60) * 1000;
+const abandonedAfterMs = (o: Order) => Math.max(10 * 60, orderWindow(o) + 5 * 60) * 1000;
 
 /** "pending" orders nobody paid or attached a slip to for a while (window + 5 min) are shown as expired (display only). */
 export function displayStatus(o: Order, now = Date.now()): DisplayStatus {
-  if (payWindowSeconds() > 0 && o.status === "pending" && o.slipAttempts.length === 0) {
+  if (orderWindow(o) > 0 && o.status === "pending" && o.slipAttempts.length === 0) {
     const lastTouch = Math.max(Date.parse(o.createdAt), ...(o.payStarts ?? []).map((s) => Date.parse(s)));
-    if (now - lastTouch > abandonedAfterMs()) return "expired";
+    if (now - lastTouch > abandonedAfterMs(o)) return "expired";
   }
   return o.status;
 }

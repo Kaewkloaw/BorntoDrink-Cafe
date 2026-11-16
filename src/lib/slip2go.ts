@@ -12,11 +12,11 @@ import "server-only";
  *   GET  /api/account/info
  */
 
-const API_URL = process.env.SLIP2GO_API_URL || "https://connect.slip2go.com";
+import { getPaymentConfig } from "./payment-config";
 
-function authHeader() {
-  const key = process.env.SLIP2GO_SECRET_KEY;
-  if (!key) throw new Error("SLIP2GO_SECRET_KEY is not set");
+async function authHeader() {
+  const key = (await getPaymentConfig()).slip2goSecretKey;
+  if (!key) throw new Error("Slip2Go secret key is not set (add it on the Slips page)");
   return { Authorization: `Bearer ${key}` };
 }
 
@@ -86,7 +86,8 @@ function conditions({ amount, receiverAccount, receiverType }: Conditions) {
 }
 
 async function call(path: string, init: RequestInit): Promise<Slip2GoResponse> {
-  const res = await fetch(`${API_URL}${path}`, { ...init, cache: "no-store" });
+  const { apiUrl } = await getPaymentConfig();
+  const res = await fetch(`${apiUrl.replace(/\/+$/, "")}${path}`, { ...init, cache: "no-store" });
   try {
     return (await res.json()) as Slip2GoResponse;
   } catch {
@@ -95,27 +96,27 @@ async function call(path: string, init: RequestInit): Promise<Slip2GoResponse> {
 }
 
 /** REST: verify by uploading the slip image. */
-export function verifySlipImage(file: Blob, filename: string, c: Conditions) {
+export async function verifySlipImage(file: Blob, filename: string, c: Conditions) {
   const form = new FormData();
   form.append("file", file, filename);
   form.append("payload", JSON.stringify(conditions(c)));
-  return call("/api/verify-slip/qr-image/info", { method: "POST", headers: authHeader(), body: form });
+  return call("/api/verify-slip/qr-image/info", { method: "POST", headers: await authHeader(), body: form });
 }
 
 /** REST: verify by the QR string decoded from the slip. */
-export function verifySlipQr(qrCode: string, c: Conditions) {
+export async function verifySlipQr(qrCode: string, c: Conditions) {
   return call("/api/verify-slip/qr-code/info", {
     method: "POST",
-    headers: { ...authHeader(), "Content-Type": "application/json" },
+    headers: { ...(await authHeader()), "Content-Type": "application/json" },
     body: JSON.stringify({ payload: { qrCode, checkCondition: conditions(c) } }),
   });
 }
 
 /** Queue: enqueue a QR string; Slip2Go POSTs the result to our webhook later. */
-export function queueSlipQr(qrCode: string, c: Conditions) {
+export async function queueSlipQr(qrCode: string, c: Conditions) {
   return call("/api/queue/verify-slip/qr-code", {
     method: "POST",
-    headers: { ...authHeader(), "Content-Type": "application/json" },
+    headers: { ...(await authHeader()), "Content-Type": "application/json" },
     body: JSON.stringify({ payload: { qrCode, checkCondition: conditions(c) } }),
   });
 }
@@ -136,7 +137,7 @@ export interface Slip2GoAccount {
 export async function getAccountInfo(): Promise<Slip2GoAccount | null> {
   try {
     const json = (await call("/api/account/info", {
-      headers: { ...authHeader(), "Content-Type": "application/json" },
+      headers: { ...(await authHeader()), "Content-Type": "application/json" },
     })) as unknown as { code: string; data?: Slip2GoAccount };
     return json.code === "200001" && json.data ? json.data : null;
   } catch {

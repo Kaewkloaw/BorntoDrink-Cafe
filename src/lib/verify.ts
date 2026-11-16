@@ -1,16 +1,16 @@
 import "server-only";
 import { isSlipOk, SLIP_MESSAGES, type Slip2GoResponse } from "./slip2go";
-import { transRefUsed, updateOrder, type Order, type SlipInfo } from "./store";
+import { getPaymentConfig } from "./payment-config";
+import { orderWindow, transRefUsed, updateOrder, type Order, type SlipInfo } from "./store";
 
 const TITLES = /^(นางสาว|น\.ส\.|นาย|นาง|ด\.ช\.|ด\.ญ\.|miss|mrs?\.?|ms\.?)\s*/i;
 const norm = (s: string) => s.replace(TITLES, "").replace(/\s+/g, " ").trim();
 
 /**
  * Slips print the receiver name truncated ("ปุญชญา จ"), so the slip's name must be the START of the
- * configured full name. Off when RECEIVER_NAME_TH is empty.
+ * configured full name. Off when no account name is set.
  */
-function receiverNameOk(slipName: string | undefined) {
-  const expected = process.env.RECEIVER_NAME_TH?.trim();
+function receiverNameOk(slipName: string | undefined, expected: string) {
   if (!expected) return true;
   if (!slipName) return false;
   const a = norm(slipName);
@@ -19,13 +19,11 @@ function receiverNameOk(slipName: string | undefined) {
 
 /**
  * The transfer must fall inside a payment window: from a moment the customer tapped "Show QR"
- * until SLIP_WINDOW_SECONDS later (± clock skew). Any of the order's windows counts. Off when 0.
+ * until the order's payment window later (± clock skew). Any of the order's windows counts. Off when 0.
  * No windows at all (QR never shown) or no transfer time on the slip = not accepted.
  */
-function withinWindow(dateTime: string | undefined, payStarts: string[] | undefined) {
-  const windowS = Number(process.env.SLIP_WINDOW_SECONDS ?? 0);
+function withinWindow(dateTime: string | undefined, payStarts: string[] | undefined, windowS: number, skewS: number) {
   if (!(windowS > 0)) return true;
-  const skewS = Number(process.env.SLIP_CLOCK_SKEW_SECONDS ?? 5);
   const t = Date.parse(dateTime ?? "");
   if (!Number.isFinite(t) || !payStarts?.length) return false;
   return payStarts.some((s) => {
@@ -60,6 +58,8 @@ export async function applySlipResult(
     checkedAt: new Date().toISOString(),
   };
 
+  const cfg = await getPaymentConfig();
+  const expectedName = cfg.accountName.trim();
   let ok = false;
   let reason = SLIP_MESSAGES[attempt.code] ?? result.message ?? "We couldn't check your slip.";
 
@@ -74,12 +74,12 @@ export async function applySlipResult(
       attempt.code = "200402";
       reason = SLIP_MESSAGES["200402"];
     }
-    if (ok && !receiverNameOk(attempt.receiverName)) {
+    if (ok && !receiverNameOk(attempt.receiverName, expectedName)) {
       ok = false;
       attempt.code = "200401";
       reason = SLIP_MESSAGES["200401"];
     }
-    if (ok && !withinWindow(attempt.dateTime, o.payStarts)) {
+    if (ok && !withinWindow(attempt.dateTime, o.payStarts, o.payStarts?.length ? orderWindow(o) : cfg.windowSeconds, cfg.clockSkewSeconds)) {
       ok = false;
       attempt.code = "200403";
       attempt.late = true; // everything else checked out, so staff must either accept it or refund it

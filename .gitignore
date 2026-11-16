@@ -49,3 +49,6 @@ next-env.d.ts
 
 # reference material (local only)
 /ref slip2go
+
+# throw-away test copy (ref slip2go/tools/start-test-shop.sh)
+.test-shop

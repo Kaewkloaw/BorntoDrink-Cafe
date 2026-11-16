@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCart } from "@/components/CartProvider";
 import { CupArt } from "@/components/CupArt";
@@ -14,8 +13,7 @@ import { groupsFor, resolveOptions, selectedIn, summarize, toggleChoice, type Op
 type Variant = { uid: string; options: string[]; qty: number };
 
 export default function CheckoutPage() {
-  const { lines, count, setQty, clear } = useCart();
-  const router = useRouter();
+  const { lines, count, setQty } = useCart();
   const [name, setName] = useState("");
   // Options apply to the whole line by default. "Make some cups different" splits off a variant with its own count.
   // base = options of the main group; more = extra variants (each has its own options and cup count).
@@ -112,8 +110,15 @@ export default function CheckoutPage() {
       try {
         localStorage.setItem("btd-name", name.trim());
       } catch {}
-      clear();
-      router.push(`/pay/${json.id}`);
+      // don't empty the bag yet (the screen would flash "Your bag is empty" while the payment page loads):
+      // the payment page clears it once it is open
+      try {
+        sessionStorage.setItem("btd-placed", json.id);
+      } catch {}
+      // a full page load (not a client-side transition): the payment page is rendered fresh per request,
+      // and this way it can never hang on "One moment…" waiting for a reload
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.assign(`/pay/${json.id}`);
     } catch (err) {
       setError((err as Error).message);
       setBusy(false);

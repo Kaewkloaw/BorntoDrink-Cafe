@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { findOrderByQueueId } from "@/lib/store";
+import { getPaymentConfig } from "@/lib/payment-config";
 import { db } from "@/lib/supabase";
 import type { Slip2GoResponse } from "@/lib/slip2go";
 import { applySlipResult } from "@/lib/verify";
@@ -24,12 +25,12 @@ function findQueueId(b: Loose): string | undefined {
 /**
  * Slip2Go Queue API callback.
  * Register in the Slip2Go dashboard as:
- *   https://<public-host>/api/slip2go/webhook?token=<SLIP2GO_WEBHOOK_TOKEN>
+ *   https://<public-host>/api/slip2go/webhook?token=<webhook token>
  * Slip2Go does not document a signature header, so the secret token in the URL
  * is what proves the call came from the URL we gave them.
  */
 export async function POST(req: Request) {
-  const expected = process.env.SLIP2GO_WEBHOOK_TOKEN ?? "";
+  const expected = (await getPaymentConfig()).webhookToken;
   const got = new URL(req.url).searchParams.get("token") ?? "";
   const a = crypto.createHash("sha256").update(got).digest();
   const b = crypto.createHash("sha256").update(expected).digest();

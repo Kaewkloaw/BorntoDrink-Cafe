@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import QRCode from "qrcode";
 import generatePayload from "promptpay-qr";
-import { payAccount } from "@/lib/pay-info";
-import { getOrder, payWindowSeconds, startPayWindow } from "@/lib/store";
+import { getPaymentConfig, payAccount } from "@/lib/payment-config";
+import { getOrder, startPayWindow } from "@/lib/store";
 
 /**
  * The customer tapped "Show QR": start a payment window and hand back the PromptPay QR.
@@ -15,18 +15,20 @@ export async function POST(_req: Request, ctx: RouteContext<"/api/orders/[id]/pa
   if (!order) return NextResponse.json({ error: "Order not found." }, { status: 404 });
   if (order.status !== "pending") return NextResponse.json({ error: "This order can't be paid anymore." }, { status: 409 });
 
-  const windowS = payWindowSeconds();
+  const cfg = await getPaymentConfig();
+  const windowS = cfg.windowSeconds;
   let expiresAt: string | null = null;
   if (windowS > 0) {
-    const started = await startPayWindow(id);
+    const started = await startPayWindow(id, windowS);
     if (!started) return NextResponse.json({ error: "This order can't be paid anymore." }, { status: 409 });
     expiresAt = new Date(Date.parse(started) + windowS * 1000).toISOString();
   }
 
-  const ppId = process.env.PROMPTPAY_ID?.trim();
-  const qr = ppId
-    ? await QRCode.toDataURL(generatePayload(ppId, { amount: order.total }), { margin: 1, width: 320, color: { dark: "#3b1d0f" } })
+  const qr = cfg.qrImage
+    ? cfg.qrImage
+    : cfg.promptpayId
+    ? await QRCode.toDataURL(generatePayload(cfg.promptpayId, { amount: order.total }), { margin: 1, width: 320, color: { dark: "#3b1d0f" } })
     : null;
 
-  return NextResponse.json({ qr, account: payAccount(), expiresAt, serverNow: Date.now() }, { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json({ qr, account: payAccount(cfg), expiresAt, serverNow: Date.now() }, { headers: { "Cache-Control": "no-store" } });
 }
