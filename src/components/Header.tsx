@@ -14,7 +14,7 @@ export function Header({ search, onSearch }: { search?: string; onSearch?: (v: s
             window.scrollTo({ top: 0, behavior: "smooth" });
           }
         }}>
-          <Image src="/brand/borntodrink-logo-transparent.png" alt="" width={190} height={64} priority style={{ width: 190, height: "auto", maxWidth: "100%" }} />
+          <Image src="/brand/borntodrink-logo-nobg.png" alt="" width={190} height={64} priority style={{ width: 190, height: "auto", maxWidth: "100%" }} />
         </Link>
 
         {onSearch && (
