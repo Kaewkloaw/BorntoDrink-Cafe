@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="public/brand/borntodrink-logo-nobg.png" width="320" alt="BorntoDrink logo" />
   <h1>☕ BorntoDrink Cafe 🦖</h1>
   <img src="https://readme-typing-svg.herokuapp.com/?lines=Welcome+to+BorntoDrink+Cafe!;🧋+Order+Your+Favorite+Drinks;💸+Pay+with+PromptPay+%26+Auto+Slip+Check&center=true&width=550&height=45&color=C2410C">
   <p align="center">🍵 เว็บสั่งเครื่องดื่มของคาเฟ่ พร้อมชำระเงินผ่าน PromptPay และตรวจสลิปอัตโนมัติด้วย Slip2Go 🥐</p>
@@ -14,17 +13,9 @@
 </div>
 
 <div align="center">
-  <img src="public/mascots/latte.webp" width="18%" alt="Latte mascot" />
-  <img src="public/mascots/cheer.webp" width="18%" alt="Cheer mascot" />
-  <img src="public/mascots/chef.webp" width="18%" alt="Chef mascot" />
-  <img src="public/mascots/pour.webp" width="18%" alt="Pour mascot" />
-  <img src="public/mascots/togo.webp" width="18%" alt="To-go mascot" />
-</div>
-
-<div align="center">
-  <video src="docs/demo/borntodrink-highlight.mp4" controls muted width="90%"></video>
+  <video src="https://github.com/user-attachments/assets/c3fc40c9-3094-4915-807a-04dd2e53d6da"></video>
   <br>
-  <i>🎬 วิดีโอ Highlight: สั่งเครื่องดื่ม → จ่าย PromptPay → ตรวจสลิปอัตโนมัติ → หลังบ้าน (<a href="docs/demo/borntodrink-highlight.mp4">ดาวน์โหลด mp4</a>)</i>
+  <i>🎬 <b>Note:</b> Please click the volume icon to enable audio for the CallSense system demonstration.</i>
 </div>
 <br>
 
@@ -78,6 +69,14 @@
     ```
 
 เปิด http://localhost:3000 — หน้าแอดมินอยู่ที่ http://localhost:3000/admin (รหัสผ่านคือ `ADMIN_PASSWORD`)
+
+<div align="center">
+  <img src="public/mascots/latte.webp" width="18%" alt="Latte mascot" />
+  <img src="public/mascots/cheer.webp" width="18%" alt="Cheer mascot" />
+  <img src="public/mascots/chef.webp" width="18%" alt="Chef mascot" />
+  <img src="public/mascots/pour.webp" width="18%" alt="Pour mascot" />
+  <img src="public/mascots/togo.webp" width="18%" alt="To-go mascot" />
+</div>
 
 ### 🧁 Commands
 
